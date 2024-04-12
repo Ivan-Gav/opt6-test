@@ -1,0 +1,42 @@
+[
+  {
+    "id": "oi-000001",
+    "itemID": "000001-001",
+    "productID": "000001",
+    "qty": 2,
+    "deliveryDate": "01.01.2026",
+    "deliveryAddress": "д. Гадюкино Болотинского уезда, Карнавальная, 3",
+    "phone": "+1234566677",
+    "manager": "Иванов"    
+  },
+  {
+    "id": "oi-000002",
+    "itemID": "000001-002",
+    "productID": "000001",
+    "qty": 1,
+    "deliveryDate": "01.01.2026",
+    "deliveryAddress": "Урюпинск, Центр",
+    "phone": "+1234566677",
+    "manager": "Петров"    
+  },
+  {
+    "id": "oi-000003",
+    "itemID": "000001-003",
+    "productID": "000001",
+    "qty": 1,
+    "deliveryDate": "01.01.2026",
+    "deliveryAddress": "Рио-де-Жанейро",
+    "phone": "+1234566677",
+    "manager": "Сидоров"    
+  },
+  {
+    "id": "oi-000004",
+    "itemID": "000001-004",
+    "productID": "000001",
+    "qty": 1,
+    "deliveryDate": "01.01.2026",
+    "deliveryAddress": "д. Гадюкино Болотинского уезда, Карнавальная, 3",
+    "phone": "+1234566677",
+    "manager": "Иванов"    
+  }
+]
