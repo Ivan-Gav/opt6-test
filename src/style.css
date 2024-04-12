@@ -1,10 +1,82 @@
-:root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
+@font-face {
+  font-family:'Myriad Pro Bold Italic';
+  src: url('assets/fonts/Myriad-Pro-Bold-Italic.woff2') format('woff2'),
+  url('assets/fonts/Myriad-Pro-Bold-Italic.woff') format('woff');
+  font-weight: 700;
+  font-style: italic;
+  font-stretch: normal;
+  font-display: block;
+  unicode-range: U+0020-04D9;
+}
+
+@font-face {
+  font-family:'Myriad Pro Bold SemiCondensed';
+  src: url('assets/fonts/Myriad-Pro-Bold-SemiCondensed.woff2') format('woff2'),
+  url('assets/fonts/Myriad-Pro-Bold-SemiCondensed.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-stretch: condensed;
+  font-display: block;
+  unicode-range: U+0020-04D9;
+}
+
+@font-face {
+  font-family:'Myriad Pro Bold';
+  src: url('assets/fonts/Myriad-Pro-Bold.woff2') format('woff2'),
+  url('assets/fonts/Myriad-Pro-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-stretch: normal;
+  font-display: block;
+  unicode-range: U+0020-04D9;
+}
+
+@font-face {
+  font-family:'Myriad Pro Condensed Italic';
+  src: url('assets/fonts/Myriad-Pro-Condensed-Italic.woff2') format('woff2'),
+  url('assets/fonts/Myriad-Pro-Condensed-Italic.woff') format('woff');
   font-weight: 400;
+  font-style: italic;
+  font-stretch: condensed;
+  font-display: block;
+  unicode-range: U+0020-04D9;
+}
+
+@font-face {
+  font-family:'Myriad Pro Regular';
+  src: url('assets/fonts/Myriad-Pro-Regular.woff2') format('woff2'),
+  url('assets/fonts/Myriad-Pro-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-stretch: normal;
+  font-display: block;
+  unicode-range: U+0020-04D9;
+}
+
+@font-face {
+  font-family:'Myriad Pro Semibold';
+  src: url('assets/fonts/Myriad-Pro-Semibold.woff2') format('woff2'),
+  url('assets/fonts/Myriad-Pro-Semibold.woff') format('woff');
+  font-weight: 600;
+  font-style: normal;
+  font-stretch: normal;
+  font-display: block;
+  unicode-range: U+0020-04D9;
+}
+
+:root {
+  --font-regular: 'Myriad Pro Regular', Helvetica, system-ui, sans-serif;
+  --font-condensed-italic: 'Myriad Pro Condensed Italic', Helvetica, system-ui, sans-serif;
+  --font-semibold: 'Myriad Pro Semibold', Helvetica, system-ui, sans-serif;
+  --font-bold: 'Myriad Pro Bold', Helvetica, system-ui, sans-serif;
+  --font-bold-condensed: 'Myriad Pro Bold SemiCondensed', Helvetica, system-ui, sans-serif;
+  --font-bold-italic: 'Myriad Pro Bold Italic', Helvetica, system-ui, sans-serif;
+  
+  font-family: var(--font-regular);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
