@@ -71,12 +71,68 @@
   --font-bold: 'Myriad Pro Bold', Helvetica, system-ui, sans-serif;
   --font-bold-condensed: 'Myriad Pro Bold SemiCondensed', Helvetica, system-ui, sans-serif;
   --font-bold-italic: 'Myriad Pro Bold Italic', Helvetica, system-ui, sans-serif;
+
+  --color-main: #000;
+  --color-bg-1: #000;
+  --color-bg-2: #1c2734;
+  --color-bg-3: #fbfcfd; /*pale-grey - Two*/
+  --color-bg-4: #f6f5f3; /*white*/
+  --color-border-1: #eeeff1; /*pale-grey*/
+  --color-border-2: #cccccc;
+  --color-controls-1: #f6f5f3; /*white*/
+  --color-controls-2: #a6b7d4;
+  --color-controls-3: #2f8cff;
+  --color-controls-4: #c0c0c0;
+  --color-text-dim: #8f8f8f;
+  --color-nav-link: #1253a2;
+  --color-shadow-1: rgba(0, 0, 0, 0.07);
+  --color-shadow-2: rgba(255, 255, 255, 0.5);
+
+  --shadow: 0 5px 20px 0 var(--color-shadow-1);
+  --shadow-select: 0 0 3px 0 var(--color-bg-1), inset 0 1px 2px 0 var(--color-shadow-2);
+
   
   font-family: var(--font-regular);
+  color: var(--color-main);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  background-color: var(--color-bg-2);
+  background-image: radial-gradient(circle at 29% 0, var(--color-bg-1), var(--color-bg-2) 103%);
 }
 
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+button {
+  border: none;
+  outline: none;
+  background-color: transparent;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: min-content;
+  height: min-content;
+  font-family: var(--font-regular);
+  cursor: pointer;
+  color: inherit;
+  opacity: 1;
+  transition: opacity 0.3s ease-in;
+}
+
+button:hover {
+  opacity: 0.85;
+}
+
+table {
+  border-collapse: collapse;
+}
