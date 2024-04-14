@@ -7,11 +7,21 @@
       </button>
     </div>
 
-    <table v-if="myColumns.length" class="table">
+    <table v-if="columns.length" class="table">
       <thead>
         <tr>
-          <th v-for="col in myColumns" :key="col.accessorKey" class="th">
-            {{ col.header }}
+          <th
+            v-for="col in columns"
+            :key="col.key"
+            class="th"
+            draggable="true"
+            @dragstart="(event) => handleDragColStart(col, event)"
+            @dragenter.prevent="() => handleDragColEnter(col)"
+            @dragover.prevent
+            @dragend="handleDragColEnd"
+            @drop="handleColDrop"
+          >
+            {{ myColumns[col.i].header }}
           </th>
         </tr>
       </thead>
@@ -22,19 +32,15 @@
           class="tr"
           draggable="true"
           :class="draggedRow && row.id === draggedRow.id && 'dragged-row'"
-          @dragstart="(event) => handleDragRow(row, event)"
+          @dragstart="(event) => handleDragRowStart(row, event)"
           @dragenter.prevent="() => true"
           @dragover.prevent="() => handleDragRowOver(row)"
           @dragend="handleDragRowEnd"
           @drop="handleRowDrop"
         >
-          <td
-            v-for="col in myColumns"
-            :key="`${col.accessorKey}-${row.id}`"
-            class="td"
-          >
+          <td v-for="col in columns" :key="`${col}-${row.id}`" class="td">
             <component
-              :is="col.cell"
+              :is="myColumns[col.i].cell"
               :row="row"
               @press-drag="() => (isDragButtonUsed = true)"
             ></component>
@@ -60,7 +66,7 @@
 </template>
 
 <script setup>
-import { h, ref, inject } from "vue";
+import { ref, inject } from "vue";
 import CogSVG from "./SVG/CogSVG.vue";
 import TableEditButton from "./TableEditButton.vue";
 import TableDnDButton from "./TableDnDButton.vue";
@@ -69,6 +75,8 @@ import PriceInput from "./PriceInput.vue";
 import QtyInput from "./QtyInput.vue";
 import TotalInput from "./TotalInput.vue";
 import ProductSelect from "./ProductSelect.vue";
+import useDragAndDropRow from "../composables/useDragAndDropRow";
+import useDragAndDropCol from "../composables/useDragAndDropCol";
 
 const props = defineProps({
   table: Array,
@@ -78,9 +86,14 @@ const { products, orderRows } = inject("data");
 
 const tableContent = ref(props.table);
 
-const isDragButtonUsed = ref(false);
-const draggedRow = ref(null);
-const targetRow = ref(null);
+const {
+  handleDragRowStart,
+  handleDragRowEnd,
+  handleDragRowOver,
+  handleRowDrop,
+  draggedRow,
+  isDragButtonUsed,
+} = useDragAndDropRow(tableContent);
 
 const myColumns = [
   {
@@ -120,48 +133,14 @@ const myColumns = [
   },
 ];
 
-const handleDragRow = (row, event) => {
-  if (!isDragButtonUsed.value) {
-    event.preventDefault();
-    return;
-  }
-  draggedRow.value = row;
-  console.log(isDragButtonUsed.value);
-  event.dataTransfer.effectAllowed = "move";
-  console.log(`drag row #${row.id}`);
-};
+const columns = ref(myColumns.map((col, i) => ({ key: col.accessorKey, i })));
 
-const handleDragRowEnd = () => {
-  targetRow.value = null;
-  draggedRow.value = null;
-  isDragButtonUsed.value = false;
-};
-
-const handleDragRowOver = (row) => {
-  if (row.id === draggedRow.value.id) {
-    targetRow.value = null;
-    return;
-  }
-  targetRow.value = row;
-
-  const newTableContent = [...tableContent.value];
-  const draggedIndex = newTableContent.indexOf(draggedRow.value);
-  const targetIndex = newTableContent.indexOf(targetRow.value);
-
-  [newTableContent[targetIndex], newTableContent[draggedIndex]] = [
-    newTableContent[draggedIndex],
-    newTableContent[targetIndex],
-  ];
-  tableContent.value = [...newTableContent];
-};
-
-const handleRowDrop = () => {
-  tableContent.value.forEach((row, i) => row.index = i+1)
-
-  targetRow.value = null;
-  draggedRow.value = null;
-  isDragButtonUsed.value = false;
-};
+const {
+  handleDragColStart,
+  handleDragColEnter,
+  handleDragColEnd,
+  handleColDrop,
+} = useDragAndDropCol(columns);
 </script>
 
 <style scoped>
@@ -197,6 +176,7 @@ const handleRowDrop = () => {
   font-size: 16px;
   border: solid 1px var(--color-border-1);
   text-align: left;
+  cursor: move;
 }
 .tr {
   height: 45px;
