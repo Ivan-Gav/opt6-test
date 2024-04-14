@@ -7,37 +7,40 @@
       </button>
     </div>
 
-    <table v-if="myColumns.length" class="table">
+    <table class="table">
       <thead>
-        <tr>
-          <th v-for="col in myColumns" :key="col.accessorKey" class="th">
-            {{ col.header }}
+        <tr
+          v-for="headerGroup in vueTable.getHeaderGroups()"
+          :key="headerGroup.id"
+        >
+          <th v-for="header in headerGroup.headers" :key="header.id" class="th">
+            <FlexRender
+              :render="header.column.columnDef.header"
+              :props="header.getContext()"
+            />
           </th>
         </tr>
       </thead>
       <tbody>
         <tr
-          v-for="row in tableContent"
+          v-for="row in vueTable.getRowModel().rows"
           :key="row.id"
           class="tr"
           draggable="true"
-          :class="draggedRow && row.id === draggedRow.id && 'dragged-row'"
+          :class="
+            draggedRow && row.original.id === draggedRow.id && 'dragged-row'
+          "
           @dragstart="(event) => handleDragRow(row, event)"
           @dragenter.prevent="() => true"
           @dragover.prevent="() => handleDragRowOver(row)"
           @dragend="handleDragRowEnd"
-          @drop="handleRowDrop"
         >
-          <td
-            v-for="col in myColumns"
-            :key="`${col.accessorKey}-${row.id}`"
-            class="td"
-          >
-            <component
-              :is="col.cell"
-              :row="row"
+          <td v-for="cell in row.getVisibleCells()" :key="cell.id" class="td">
+            <FlexRender
+              :render="cell.column.columnDef.cell"
+              :props="cell.getContext()"
               @press-drag="() => (isDragButtonUsed = true)"
-            ></component>
+            />
           </td>
         </tr>
       </tbody>
@@ -60,15 +63,13 @@
 </template>
 
 <script setup>
-import { h, ref, inject } from "vue";
+import { computed, h, onMounted, ref, watch, inject, reactive } from "vue";
+import { useVueTable, FlexRender, getCoreRowModel } from "@tanstack/vue-table";
 import CogSVG from "./SVG/CogSVG.vue";
 import TableEditButton from "./TableEditButton.vue";
 import TableDnDButton from "./TableDnDButton.vue";
-import ProductItemSelect from "./ProductItemSelect.vue";
-import PriceInput from "./PriceInput.vue";
-import QtyInput from "./QtyInput.vue";
-import TotalInput from "./TotalInput.vue";
-import ProductSelect from "./ProductSelect.vue";
+import TableInputNumber from "./TableInputNumber.vue";
+import TableSelect from "./TableSelect.vue";
 
 const props = defineProps({
   table: Array,
@@ -80,87 +81,130 @@ const tableContent = ref(props.table);
 
 const isDragButtonUsed = ref(false);
 const draggedRow = ref(null);
-const targetRow = ref(null);
+
+console.log(tableContent.value);
+
+// const fields = computed(() =>
+//   !!tableContent.value.length ? Object.keys(tableContent.value[0]) : []
+// );
 
 const myColumns = [
   {
     accessorKey: "index",
     header: "",
-    cell: TableDnDButton,
+    cell: ({ row }) => h(TableDnDButton, { index: row.original.index }),
   },
   {
     accessorKey: "edit",
     header: "",
-    cell: TableEditButton,
+    cell: () => h(TableEditButton),
   },
   {
     accessorKey: "itemName",
     header: "Наименование единицы",
-    cell: ProductItemSelect,
+    cell: ({ row }) => {
+      let options = [];
+      const product = products.value.find(
+        (p) => p.id === row.original.productID
+      );
+      if (product && "items" in product) {
+        options = [...product.items];
+      } else {
+        console.log(row.original.productID);
+      }
+      return h(TableSelect, {
+        id: `item-${row.original.id}`,
+        value: row.original.itemName,
+        options: options,
+      });
+    },
   },
+  ,
   {
     accessorKey: "price",
     header: "Цена",
-    cell: PriceInput,
+    cell: ({ row }) =>
+      h(TableInputNumber, {
+        value: row.original.price,
+        id: `price-${row.original.id}`,
+      }),
   },
+  ,
   {
     accessorKey: "qty",
     header: "Кол-во",
-    cell: QtyInput,
+    cell: ({ row }) =>
+      h(TableInputNumber, {
+        value: row.original.qty,
+        id: `qty-${row.original.id}`,
+      }),
   },
+  ,
   {
     accessorKey: "productName",
     header: "Название товара",
-    cell: ProductSelect,
+    cell: ({ row }) => {
+      return h(TableSelect, {
+        id: `product-${row.original.id}`,
+        value: row.original.productName,
+        options: products.value,
+      });
+    },
   },
   {
     accessorKey: "totalPrice",
     header: "Итого",
-    cell: TotalInput,
+    cell: ({ row }) =>
+      h(TableInputNumber, {
+        value: row.original.price * row.original.qty,
+        id: `total-${row.original.id}`,
+      }),
   },
 ];
+
+
+const tableOptions = reactive({
+  get data() { 
+    return tableContent.value;
+  },
+  getCoreRowModel: getCoreRowModel(),
+  get columns() {
+    return myColumns
+  }, 
+});
+
+const vueTable = useVueTable(tableOptions);
 
 const handleDragRow = (row, event) => {
   if (!isDragButtonUsed.value) {
     event.preventDefault();
     return;
   }
-  draggedRow.value = row;
+  draggedRow.value = row.original;
   console.log(isDragButtonUsed.value);
   event.dataTransfer.effectAllowed = "move";
-  console.log(`drag row #${row.id}`);
+  console.log(`drag row #${row.original.id}`);
 };
 
 const handleDragRowEnd = () => {
-  targetRow.value = null;
-  draggedRow.value = null;
   isDragButtonUsed.value = false;
+  draggedRow.value = null;
 };
 
 const handleDragRowOver = (row) => {
-  if (row.id === draggedRow.value.id) {
-    targetRow.value = null;
+  if (row.original.id === draggedRow.value.id) {
     return;
   }
-  targetRow.value = row;
-
   const newTableContent = [...tableContent.value];
-  const draggedIndex = newTableContent.indexOf(draggedRow.value);
-  const targetIndex = newTableContent.indexOf(targetRow.value);
-
-  [newTableContent[targetIndex], newTableContent[draggedIndex]] = [
-    newTableContent[draggedIndex],
-    newTableContent[targetIndex],
+  [
+    newTableContent[row.original.index - 1],
+    newTableContent[draggedRow.value.index - 1],
+  ] = [
+    newTableContent[draggedRow.value.index - 1],
+    newTableContent[row.original.index - 1],
   ];
-  tableContent.value = [...newTableContent];
-};
-
-const handleRowDrop = () => {
-  tableContent.value.forEach((row, i) => row.index = i+1)
-
-  targetRow.value = null;
-  draggedRow.value = null;
-  isDragButtonUsed.value = false;
+  tableContent.value = [...newTableContent]
+  console.log(newTableContent);
 };
 </script>
 
@@ -204,11 +248,7 @@ const handleRowDrop = () => {
 
 .tr.dragged-row {
   border: dashed 2px var(--color-controls-2);
-}
-
-.tr.dragged-row * {
   /* visibility: hidden; */
-  opacity: 0.5;
 }
 
 .td {

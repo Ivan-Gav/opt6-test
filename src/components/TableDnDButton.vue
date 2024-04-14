@@ -1,17 +1,19 @@
 <template>
   <div class="box">
-    <button>
-      <BurgerSVG class="burger"/>
+    <button @mousedown="emit('pressDrag')">
+      <BurgerSVG class="burger" />
     </button>
-    <p class="index">{{ index }}</p>
+    <p class="index">{{ row.index }}</p>
   </div>
 </template>
 
 <script setup>
 import BurgerSVG from "./SVG/BurgerSVG.vue";
 defineProps({
-  index: Number,
+  row: Object,
 });
+
+const emit = defineEmits(['pressDrag']);
 </script>
 
 <style scoped>
@@ -22,7 +24,8 @@ defineProps({
   gap: 5px;
 }
 .burger {
-  color: var(--color-controls-2)
+  color: var(--color-controls-2);
+  cursor: move;
 }
 .index {
   font-size: 16px;
