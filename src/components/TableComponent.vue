@@ -9,19 +9,30 @@
 
     <table v-if="columns.length" class="table">
       <thead>
-        <tr>
+        <tr ref="thrRef">
           <th
             v-for="col in columns"
+            ref="thRefs"
             :key="col.key"
             class="th"
-            draggable="true"
+            :class="isResizing && isResizing.i === col.i && 'th-resize'"
+            :style="isResizing && isResizing.i === col.i && { maxWidth: resizedWidth + 'px', color: 'red'}"
+            :draggable="!isResizing"
             @dragstart="(event) => handleDragColStart(col, event)"
             @dragenter.prevent="() => handleDragColEnter(col)"
             @dragover.prevent
             @dragend="handleDragColEnd"
             @drop="handleColDrop"
+            @mouseup="stopResize"
+            @mousemove="(event) => handleResize(col, event)"
           >
             {{ myColumns[col.i].header }}
+
+            <div
+              v-if="col.i !== columns.length - 1"
+              class="th-resizer"
+              @mousedown="(event) => startResize(col, event)"
+            ></div>
           </th>
         </tr>
       </thead>
@@ -38,7 +49,12 @@
           @dragend="handleDragRowEnd"
           @drop="handleRowDrop"
         >
-          <td v-for="col in columns" :key="`${col}-${row.id}`" class="td">
+          <td
+            v-for="col in columns"
+            :key="`${col}-${row.id}`"
+            class="td"
+            :class="isResizing && isResizing.i === col.i && 'td-resize'"
+          >
             <component
               :is="myColumns[col.i].cell"
               :row="row"
@@ -62,11 +78,21 @@
       <div class="table-total-bottomline-legend">Общая сумма:</div>
       <div class="table-total-bottomline-value">152 212 руб</div>
     </div>
+
+    <div class="table-total-details">
+      <div class="table-total-bottomline-legend">Element width:</div>
+      <div class="table-total-bottomline-value">{{ elWidth }}</div>
+      <div class="table-total-bottomline-legend">Element right:</div>
+      <div class="table-total-bottomline-value">{{ elRight }}</div>
+      <div class="table-total-bottomline-legend">Mouse X:</div>
+      <div class="table-total-bottomline-value">{{ x }}</div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, inject } from "vue";
+import { ref, inject, onMounted, watch } from "vue";
+import { useMouseInElement, useElementBounding } from "@vueuse/core";
 import CogSVG from "./SVG/CogSVG.vue";
 import TableEditButton from "./TableEditButton.vue";
 import TableDnDButton from "./TableDnDButton.vue";
@@ -85,6 +111,18 @@ const props = defineProps({
 const { products, orderRows } = inject("data");
 
 const tableContent = ref(props.table);
+
+
+
+const isResizing = ref(null);
+const elWidth = ref(0)
+const elRight = ref(0)
+const resizedWidth = ref(0);
+const mX = ref(null)
+
+
+const thrRef = ref (null);
+const thRefs = ref([]);
 
 const {
   handleDragRowStart,
@@ -141,6 +179,39 @@ const {
   handleDragColEnd,
   handleColDrop,
 } = useDragAndDropCol(columns);
+
+
+const { x, elementX } = useMouseInElement(thrRef);
+
+
+
+const startResize = (col, e) => {
+  isResizing.value = col;
+  console.log("start resizing");
+  mX.value = e.clientX;
+//   const target = thRefs.value[col.i];
+//   const { left, right, width  } = useElementBounding(target);
+//   elWidth.value = elementWidth.value
+};
+
+const handleResize = (col, e) => {
+  if (!isResizing.value) {
+    return;
+  }
+  console.log("handle resize");
+  const target = thRefs.value[col.i];
+  const { left, right, width  } = useElementBounding(target);
+  elWidth.value = width.value
+  elRight.value = right.value
+    
+  resizedWidth.value = x.value - left.value
+};
+
+
+const stopResize = () => {
+  isResizing.value = null;
+  mX.value = null
+};
 </script>
 
 <style scoped>
@@ -168,16 +239,38 @@ const {
 
 .table {
   width: 100%;
+  /*table-layout: fixed;*/
 }
 .th {
+  position: relative;
   min-height: 44px;
-  padding: 10px;
+  padding: 14px 10px;
   font-family: var(--font-semibold);
   font-size: 16px;
   border: solid 1px var(--color-border-1);
   text-align: left;
   cursor: move;
+  text-overflow: clip;
+  white-space: nowrap;
+  overflow: hidden;
 }
+
+.th-resize,
+.td-resize {
+  border-right: solid 1px var(--color-border-2);
+}
+
+.th-resizer {
+  position: absolute;
+  z-index: 10;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  background-color: transparent;
+  cursor: col-resize;
+}
+
 .tr {
   height: 45px;
 }
@@ -193,6 +286,9 @@ const {
 
 .td {
   padding: 5px 10px;
+  text-overflow: clip;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .table-total-details {
