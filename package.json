@@ -12,7 +12,8 @@
     "@tanstack/vue-table": "^8.15.3",
     "@vueuse/core": "^10.9.0",
     "lodash.debounce": "^4.0.8",
-    "vue": "^3.4.21"
+    "vue": "^3.4.21",
+    "vue-columns-resizable": "^0.0.1"
   },
   "devDependencies": {
     "@types/lodash.debounce": "^4.0.9",

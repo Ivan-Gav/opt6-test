@@ -1,5 +1,5 @@
 <template>
-  <div class="table-box">
+  <div class="table-box" @mouseup="stopResize">
     <div class="table-controls">
       <button class="save-btn">Сохранить изменения</button>
       <button class="settings-btn">
@@ -9,29 +9,28 @@
 
     <table v-if="columns.length" class="table">
       <thead>
-        <tr ref="thrRef">
+        <tr>
           <th
             v-for="col in columns"
             ref="thRefs"
             :key="col.key"
             class="th"
             :class="isResizing && isResizing.i === col.i && 'th-resize'"
-            :style="isResizing && isResizing.i === col.i && { maxWidth: resizedWidth + 'px', color: 'red'}"
+            :style="!!col.width && { width: col.width + 'px' }"
             :draggable="!isResizing"
             @dragstart="(event) => handleDragColStart(col, event)"
             @dragenter.prevent="() => handleDragColEnter(col)"
             @dragover.prevent
             @dragend="handleDragColEnd"
             @drop="handleColDrop"
-            @mouseup="stopResize"
-            @mousemove="(event) => handleResize(col, event)"
+            @mousemove="handleResize"
           >
             {{ myColumns[col.i].header }}
 
             <div
               v-if="col.i !== columns.length - 1"
               class="th-resizer"
-              @mousedown="(event) => startResize(col, event)"
+              @mousedown="() => startResize(col)"
             ></div>
           </th>
         </tr>
@@ -79,20 +78,11 @@
       <div class="table-total-bottomline-value">152 212 руб</div>
     </div>
 
-    <div class="table-total-details">
-      <div class="table-total-bottomline-legend">Element width:</div>
-      <div class="table-total-bottomline-value">{{ elWidth }}</div>
-      <div class="table-total-bottomline-legend">Element right:</div>
-      <div class="table-total-bottomline-value">{{ elRight }}</div>
-      <div class="table-total-bottomline-legend">Mouse X:</div>
-      <div class="table-total-bottomline-value">{{ x }}</div>
-    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, inject, onMounted, watch } from "vue";
-import { useMouseInElement, useElementBounding } from "@vueuse/core";
+import { ref, inject } from "vue";
 import CogSVG from "./SVG/CogSVG.vue";
 import TableEditButton from "./TableEditButton.vue";
 import TableDnDButton from "./TableDnDButton.vue";
@@ -103,6 +93,7 @@ import TotalInput from "./TotalInput.vue";
 import ProductSelect from "./ProductSelect.vue";
 import useDragAndDropRow from "../composables/useDragAndDropRow";
 import useDragAndDropCol from "../composables/useDragAndDropCol";
+import useResizeCol from "../composables/useResizeCol";
 
 const props = defineProps({
   table: Array,
@@ -112,16 +103,6 @@ const { products, orderRows } = inject("data");
 
 const tableContent = ref(props.table);
 
-
-
-const isResizing = ref(null);
-const elWidth = ref(0)
-const elRight = ref(0)
-const resizedWidth = ref(0);
-const mX = ref(null)
-
-
-const thrRef = ref (null);
 const thRefs = ref([]);
 
 const {
@@ -138,40 +119,49 @@ const myColumns = [
     accessorKey: "index",
     header: "",
     cell: TableDnDButton,
+    initialWidth: 30,
   },
   {
     accessorKey: "edit",
     header: "",
     cell: TableEditButton,
+    initialWidth: 20,
   },
   {
     accessorKey: "itemName",
     header: "Наименование единицы",
     cell: ProductItemSelect,
+    initialWidth: 600
   },
   {
     accessorKey: "price",
     header: "Цена",
     cell: PriceInput,
+    initialWidth: 200
   },
   {
     accessorKey: "qty",
     header: "Кол-во",
     cell: QtyInput,
+    initialWidth: 200
   },
   {
     accessorKey: "productName",
     header: "Название товара",
     cell: ProductSelect,
+
   },
   {
     accessorKey: "totalPrice",
     header: "Итого",
     cell: TotalInput,
+
   },
 ];
 
-const columns = ref(myColumns.map((col, i) => ({ key: col.accessorKey, i })));
+const columns = ref(
+  myColumns.map((col, i) => ({ key: col.accessorKey, i, width: col.initialWidth || 0 }))
+);
 
 const {
   handleDragColStart,
@@ -180,38 +170,7 @@ const {
   handleColDrop,
 } = useDragAndDropCol(columns);
 
-
-const { x, elementX } = useMouseInElement(thrRef);
-
-
-
-const startResize = (col, e) => {
-  isResizing.value = col;
-  console.log("start resizing");
-  mX.value = e.clientX;
-//   const target = thRefs.value[col.i];
-//   const { left, right, width  } = useElementBounding(target);
-//   elWidth.value = elementWidth.value
-};
-
-const handleResize = (col, e) => {
-  if (!isResizing.value) {
-    return;
-  }
-  console.log("handle resize");
-  const target = thRefs.value[col.i];
-  const { left, right, width  } = useElementBounding(target);
-  elWidth.value = width.value
-  elRight.value = right.value
-    
-  resizedWidth.value = x.value - left.value
-};
-
-
-const stopResize = () => {
-  isResizing.value = null;
-  mX.value = null
-};
+const { startResize, handleResize, stopResize, isResizing } = useResizeCol(thRefs, columns)
 </script>
 
 <style scoped>
@@ -236,10 +195,10 @@ const stopResize = () => {
   width: max-content;
   font-size: 12px;
 }
-
 .table {
   width: 100%;
-  /*table-layout: fixed;*/
+  table-layout: fixed;
+  overflow: hidden;
 }
 .th {
   position: relative;

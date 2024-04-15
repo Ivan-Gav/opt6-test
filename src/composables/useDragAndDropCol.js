@@ -6,7 +6,6 @@ export default function useDragAndDropCol(columns) {
 
   const handleDragColStart = (col, event) => {
     draggedCol.value = col;
-    console.log(`${col.key} is being dragged`);
     event.dataTransfer.effectAllowed = "move";
   };
 

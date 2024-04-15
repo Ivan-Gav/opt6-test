@@ -23,7 +23,7 @@ onMounted(() => {
   if (product && "items" in product) {
     options.value = [...product.items];
   } else {
-    console.log(row.productID);
+    //process error
   }
 });
 </script>
