@@ -1,32 +1,36 @@
 <template>
   <main class="main">
-    
     <h1 class="pageheading">Проведение ТО и мелкий ремонт</h1>
-    
+
     <NavBar />
-    
+
     <div class="box">
-      <button class="add-btn">
+      <button class="add-btn" @click="addRow">
         <PlusSVG />
         <span>Добавить строку</span>
       </button>
     </div>
 
-    <TableComponent :table="table" />
-
+    <TableComponent :table="table" @delete-row="() => console.log('delete row')"/>
   </main>
 </template>
 
 <script setup>
-import { onBeforeMount, provide, ref } from "vue";
+import { onBeforeMount, provide, ref, computed } from "vue";
 import goods from "./mockdata/goods.json"; // mock data to emulate products from backend
 import orderItems from "./mockdata/orderItems.json"; // mock data to emulate order info from backend
 import NavBar from "./components/NavBar.vue";
 import PlusSVG from "./components/SVG/PlusSVG.vue";
 import TableComponent from "./components/TableComponent.vue";
+import TableEditButton from "./components/TableEditButton.vue";
+import TableDnDButton from "./components/TableDnDButton.vue";
+import ProductItemSelect from "./components/ProductItemSelect.vue";
+import CustomSelect from "./components/UI/CustomSelect.vue";
+import CustomNumberInput from "./components/UI/CustomNumberInput.vue";
+import CustomTextInput from "./components/UI/CustomTextInput.vue";
 
-const products = ref([])
-const orderRows = ref([])
+const products = ref([]);
+const orderRows = ref([]);
 
 const table = ref([]);
 
@@ -34,20 +38,28 @@ onBeforeMount(() => {
   // get data from backend
 
   if (!goods || !orderItems) {
-    throw new Error(`Can't fetch data from server`)
+    throw new Error(`Can't fetch data from server`);
   }
 
   products.value = goods;
   orderRows.value = orderItems;
 
   table.value = orderItems.map((item, i) => {
-    const { productID, itemID, qty, deliveryDate, deliveryAddress, phone, manager } = item
-    
+    const {
+      productID,
+      itemID,
+      qty,
+      deliveryDate,
+      deliveryAddress,
+      phone,
+      manager,
+    } = item;
+
     const product = goods.find((p) => (p.id = productID));
     const prodItem = product
       ? product.items.find((itm) => itm.id === itemID)
       : null;
-       
+
     return {
       index: i + 1,
       id: `tr-${i}`,
@@ -63,13 +75,151 @@ onBeforeMount(() => {
       deliveryDate,
       deliveryAddress,
       phone,
-      manager
+      manager,
     };
   });
 });
 
-provide('data', { products, orderRows })
+const addRow = () => {
+  const newRow = {
+    index: table.value.length + 1,
+    id: `tr-${table.value.length}`,
+    productID: products.value[0].id,
+    productName: products.value[0].name,
+    itemID: products.value[0].items[0].id,
+    itemName: products.value[0].items[0].name,
+    qty: 0,
+    price: products.value[0].items[0].price,
+    totalPrice: 0,
+    weight: products.value[0].items[0].weight,
+    totalWeight: 0,
+    deliveryDate: "",
+    deliveryAddress: "",
+    phone: "",
+    manager: "",
+  };
 
+  table.value.push(newRow);
+};
+
+const deleteRow = (row) => {
+  table.value.splice(table.value.indexOf(row), 1)
+}
+
+const myColumns = [
+  {
+    accessorKey: "index",
+    header: "",
+    cell: TableDnDButton,
+    getCellProps: (row) => ({ row }),
+    initialWidth: 30,
+    initialShow: true
+  },
+  {
+    accessorKey: "edit",
+    header: "",
+    cell: TableEditButton,
+    getCellProps: (row) => ({ row }),
+    initialWidth: 20,
+    initialShow: true
+  },
+  {
+    accessorKey: "itemName",
+    header: "Наименование единицы",
+    cell: ProductItemSelect,
+    getCellProps: (row) => ({ row }),
+    initialWidth: 600,
+    initialShow: true
+  },
+  {
+    accessorKey: "price",
+    header: "Цена",
+    cell: CustomNumberInput,
+    getCellProps: (row) => ({ value: row.price, id: `price-${row.id}` }),
+    initialWidth: 200,
+    initialShow: true
+  },
+  {
+    accessorKey: "qty",
+    header: "Кол-во",
+    cell: CustomNumberInput,
+    getCellProps: (row) => ({ value: row.qty, id: `qty-${row.id}` }),
+    initialWidth: 200,
+    initialShow: true
+  },
+  {
+    accessorKey: "productName",
+    header: "Название товара",
+    cell: CustomSelect,
+    getCellProps: (row) => ({ id: `product-${row.id}`, value: row.productName, options: products.value }), 
+    initialShow: true
+  },
+  {
+    accessorKey: "totalPrice",
+    header: "Итого",
+    cell: CustomNumberInput,
+    getCellProps: (row) => ({ value: row.price * row.qty, id: `total-${row.id}` }),
+    initialShow: true
+  },
+  {
+    accessorKey: "weight",
+    header: "Вес",
+    cell: CustomNumberInput,
+    getCellProps: (row) => ({ value: row.weight, id:`weight-${row.id}` }),
+    initialShow: false
+  },
+  {
+    accessorKey: "totalWeight",
+    header: "Общий вес",
+    cell: CustomNumberInput,
+    getCellProps: (row) => ({ value: row.totalWeight, id:`total-weight-${row.id}` }),
+    initialShow: false
+  },
+  {
+    accessorKey: "deliveryDate",
+    header: "Дата поставки",
+    cell: CustomTextInput,
+    getCellProps: (row) => ({ value: row.deliveryDate, id:`delivery-date-${row.id}` }),
+    initialShow: false
+  },
+  {
+    accessorKey: "deliveryAddress",
+    header: "Адрес доставки",
+    cell: CustomTextInput,
+    getCellProps: (row) => ({ value: row.deliveryAddress, id:`delivery-address-${row.id}` }),
+    initialShow: false
+  },
+  {
+    accessorKey: "phone",
+    header: "Телефон",
+    cell: CustomTextInput,
+    getCellProps: (row) => ({ value: row.phone, id:`phone-${row.id}` }),
+    initialShow: false
+  },
+  {
+    accessorKey: "manager",
+    header: "Менеджер",
+    cell: CustomTextInput,
+    getCellProps: (row) => ({ value: row.manager, id:`manager-${row.id}` }),
+    initialShow: false
+  },
+];
+
+const columns = ref(
+  myColumns.map((col, i) => ({
+    key: col.accessorKey,
+    i,
+    width: col.initialWidth || 0,
+    name: col.header || col.accessorKey,
+    show: col.initialShow || false,
+
+  }))
+);
+
+const visibleColumns = computed(() => columns.value.filter((col) => col.show));
+
+provide("table", { table, columns, myColumns, visibleColumns, deleteRow })
+provide("data", { products, orderRows });
 </script>
 
 <style scoped>

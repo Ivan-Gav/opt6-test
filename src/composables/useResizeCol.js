@@ -1,8 +1,10 @@
-import { h, ref } from 'vue'
+import { ref } from 'vue'
 import { useMouse, useElementBounding } from "@vueuse/core";
 
 export default function useResizeCol(thRefs, columns) {
   const isResizing = ref(null);
+
+  const i = ref(null)
 
   const { x } = useMouse();
 

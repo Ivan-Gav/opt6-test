@@ -63,13 +63,6 @@ useOutsideClick(selectRef, closeOptions);
   -moz-appearance: none;
   -webkit-appearance: none;
   appearance: none;
-  background-image: linear-gradient(
-    var(--color-controls-1),
-    var(--color-controls-1)
-  );
-  background-repeat: no-repeat;
-  background-position: right top;
-  background-size: 21px 100%;
   cursor: pointer;
 }
 
@@ -78,13 +71,18 @@ useOutsideClick(selectRef, closeOptions);
 }
 
 .select::after {
-  content: "◥";
-  transform: rotate(45deg);
+  content: "▶";
   color: var(--color-controls-4);
   font-size: 6px;
   position: absolute;
-  right: 11px;
-  top: 13px;
+  right: 0;
+  top: 0;
+  width: 21px;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--color-controls-1);
   opacity: 1;
   transition: opacity 0.3s ease-in;
 }
@@ -118,7 +116,7 @@ useOutsideClick(selectRef, closeOptions);
 }
 
 .option:hover {
-  background-color: var(--color-border-2);
+  background-color: var(--color-bg-5);
 }
 
 .option:active {

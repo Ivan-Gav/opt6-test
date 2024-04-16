@@ -2,16 +2,18 @@
   <div class="table-box" @mouseup="stopResize">
     <div class="table-controls">
       <button class="save-btn">Сохранить изменения</button>
-      <button class="settings-btn">
+      <button class="settings-btn" @click="handleSettingsClick">
         <CogSVG />
       </button>
+      <SettingsMenu v-bind="contMenuParams" @close-context-menu="handleOutsideClick"/>
     </div>
 
-    <table v-if="columns.length" class="table">
+    <table v-if="visibleColumns.length" class="table">
       <thead>
         <tr>
           <th
             v-for="col in columns"
+            v-show="col.show"
             ref="thRefs"
             :key="col.key"
             class="th"
@@ -23,12 +25,12 @@
             @dragover.prevent
             @dragend="handleDragColEnd"
             @drop="handleColDrop"
-            @mousemove="handleResize"
+            @mousemove="() => handleResize(col)"
           >
             {{ myColumns[col.i].header }}
 
             <div
-              v-if="col.i !== columns.length - 1"
+              v-if="visibleColumns.indexOf(col) !== visibleColumns.length - 1"
               class="th-resizer"
               @mousedown="() => startResize(col)"
             ></div>
@@ -37,7 +39,7 @@
       </thead>
       <tbody>
         <tr
-          v-for="row in tableContent"
+          v-for="row in table"
           :key="row.id"
           class="tr"
           draggable="true"
@@ -49,13 +51,15 @@
           @drop="handleRowDrop"
         >
           <td
-            v-for="col in columns"
-            :key="`${col}-${row.id}`"
+            v-for="col in visibleColumns"
+            :key="`${col.id}-${row.id}`"
             class="td"
             :class="isResizing && isResizing.i === col.i && 'td-resize'"
           >
             <component
+              :key="`cell-content-${col.id}-${row.id}`"
               :is="myColumns[col.i].cell"
+              v-bind="myColumns[col.i].getCellProps(row)"
               :row="row"
               @press-drag="() => (isDragButtonUsed = true)"
             ></component>
@@ -77,31 +81,23 @@
       <div class="table-total-bottomline-legend">Общая сумма:</div>
       <div class="table-total-bottomline-value">152 212 руб</div>
     </div>
-
   </div>
 </template>
 
 <script setup>
 import { ref, inject } from "vue";
 import CogSVG from "./SVG/CogSVG.vue";
-import TableEditButton from "./TableEditButton.vue";
-import TableDnDButton from "./TableDnDButton.vue";
-import ProductItemSelect from "./ProductItemSelect.vue";
-import PriceInput from "./PriceInput.vue";
-import QtyInput from "./QtyInput.vue";
-import TotalInput from "./TotalInput.vue";
-import ProductSelect from "./ProductSelect.vue";
 import useDragAndDropRow from "../composables/useDragAndDropRow";
 import useDragAndDropCol from "../composables/useDragAndDropCol";
 import useResizeCol from "../composables/useResizeCol";
+import useSettingsMenu from "../composables/useSettingsMenu";
+import SettingsMenu from "./SettingsMenu.vue";
 
 const props = defineProps({
   table: Array,
 });
 
-const { products, orderRows } = inject("data");
-
-const tableContent = ref(props.table);
+const { table ,columns, myColumns, visibleColumns } = inject('table')
 
 const thRefs = ref([]);
 
@@ -112,56 +108,7 @@ const {
   handleRowDrop,
   draggedRow,
   isDragButtonUsed,
-} = useDragAndDropRow(tableContent);
-
-const myColumns = [
-  {
-    accessorKey: "index",
-    header: "",
-    cell: TableDnDButton,
-    initialWidth: 30,
-  },
-  {
-    accessorKey: "edit",
-    header: "",
-    cell: TableEditButton,
-    initialWidth: 20,
-  },
-  {
-    accessorKey: "itemName",
-    header: "Наименование единицы",
-    cell: ProductItemSelect,
-    initialWidth: 600
-  },
-  {
-    accessorKey: "price",
-    header: "Цена",
-    cell: PriceInput,
-    initialWidth: 200
-  },
-  {
-    accessorKey: "qty",
-    header: "Кол-во",
-    cell: QtyInput,
-    initialWidth: 200
-  },
-  {
-    accessorKey: "productName",
-    header: "Название товара",
-    cell: ProductSelect,
-
-  },
-  {
-    accessorKey: "totalPrice",
-    header: "Итого",
-    cell: TotalInput,
-
-  },
-];
-
-const columns = ref(
-  myColumns.map((col, i) => ({ key: col.accessorKey, i, width: col.initialWidth || 0 }))
-);
+} = useDragAndDropRow(table);
 
 const {
   handleDragColStart,
@@ -170,7 +117,13 @@ const {
   handleColDrop,
 } = useDragAndDropCol(columns);
 
-const { startResize, handleResize, stopResize, isResizing } = useResizeCol(thRefs, columns)
+const { startResize, handleResize, stopResize, isResizing } = useResizeCol(
+  thRefs,
+  visibleColumns
+);
+
+const { contMenuParams,  handleOutsideClick, handleSettingsClick} = useSettingsMenu()
+
 </script>
 
 <style scoped>
@@ -198,7 +151,7 @@ const { startResize, handleResize, stopResize, isResizing } = useResizeCol(thRef
 .table {
   width: 100%;
   table-layout: fixed;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 .th {
   position: relative;
@@ -239,15 +192,11 @@ const { startResize, handleResize, stopResize, isResizing } = useResizeCol(thRef
 }
 
 .tr.dragged-row * {
-  /* visibility: hidden; */
   opacity: 0.5;
 }
 
 .td {
   padding: 5px 10px;
-  text-overflow: clip;
-  white-space: nowrap;
-  overflow: hidden;
 }
 
 .table-total-details {

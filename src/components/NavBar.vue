@@ -26,27 +26,31 @@
         >Доп.расходы</a
       >
     </nav>
-    <button class="settings-btn" @click="handleSettingsClick">
+    <button class="settings-btn" @click="handleSettingsClick" >
       <CogSVG />
     </button>
   </div>
+
+    <SettingsMenu v-bind="contMenuParams" @close-context-menu="handleOutsideClick"/>
+
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, reactive } from "vue";
 import CogSVG from "./SVG/CogSVG.vue";
+import SettingsMenu from "./SettingsMenu.vue";
+import useSettingsMenu from "../composables/useSettingsMenu";
 
 const active = ref("catalog");
+
+
+const { contMenuParams,  handleOutsideClick, handleSettingsClick} = useSettingsMenu()
 
 const handleNavClick = (e) => {
   active.value = e.target.dataset.to;
   // process nav click
 };
 
-const handleSettingsClick = () => {
-  console.log('settings clicked')
-  // process settings click
-}
 </script>
 
 <style scoped>
@@ -83,5 +87,4 @@ const handleSettingsClick = () => {
   color: var(--color-controls-2);
   transition: color 0.3s ease-in;
 }
-
 </style>
