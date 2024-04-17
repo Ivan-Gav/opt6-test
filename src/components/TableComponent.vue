@@ -1,11 +1,16 @@
 <template>
   <div class="table-box" @mouseup="stopResize">
     <div class="table-controls">
-      <button class="save-btn">Сохранить изменения</button>
+      <button class="save-btn" @click="handleDataSave">
+        Сохранить изменения
+      </button>
       <button class="settings-btn" @click="handleSettingsClick">
         <CogSVG />
       </button>
-      <SettingsMenu v-bind="contMenuParams" @close-context-menu="handleOutsideClick"/>
+      <SettingsMenu
+        v-bind="contMenuParams"
+        @close-context-menu="handleOutsideClick"
+      />
     </div>
 
     <table v-if="visibleColumns.length" class="table">
@@ -17,7 +22,12 @@
             ref="thRefs"
             :key="col.key"
             class="th"
-            :class="isResizing && isResizing.i === col.i && 'th-resize'"
+            :class="{
+              thresize: isResizing && isResizing.i === col.i,
+              visible: col.show,
+              first: col.key === visibleColumns[0].key, 
+              last: col.key === visibleColumns[visibleColumns.length - 1].key,
+            }"
             :style="!!col.width && { width: col.width + 'px' }"
             :draggable="!isResizing"
             @dragstart="(event) => handleDragColStart(col, event)"
@@ -27,7 +37,7 @@
             @drop="handleColDrop"
             @mousemove="() => handleResize(col)"
           >
-            {{ myColumns[col.i].header }}
+            {{ dontShowHeadersOnDesktop.has(col.key) ? '' :  myColumns[col.i].header }}
 
             <div
               v-if="visibleColumns.indexOf(col) !== visibleColumns.length - 1"
@@ -43,7 +53,7 @@
           :key="row.id"
           class="tr"
           draggable="true"
-          :class="draggedRow && row.id === draggedRow.id && 'dragged-row'"
+          :class="{ draggedrow: draggedRow && row.id === draggedRow.id }"
           @dragstart="(event) => handleDragRowStart(row, event)"
           @dragenter.prevent="() => true"
           @dragover.prevent="() => handleDragRowOver(row)"
@@ -54,13 +64,20 @@
             v-for="col in visibleColumns"
             :key="`${col.id}-${row.id}`"
             class="td"
-            :class="isResizing && isResizing.i === col.i && 'td-resize'"
+            :class="{ tdresize: isResizing && isResizing.i === col.i }"
           >
             <component
+              v-if="col.editable"
               :key="`cell-content-${col.id}-${row.id}`"
               :is="myColumns[col.i].cell"
               v-bind="myColumns[col.i].getCellProps(row)"
-              :row="row"
+              v-model="row[col.key]"
+            ></component>
+            <component
+              v-else
+              :key="`cell-controls-${col.id}-${row.id}`"
+              :is="myColumns[col.i].cell"
+              v-bind="myColumns[col.i].getCellProps(row)"
               @press-drag="() => (isDragButtonUsed = true)"
             ></component>
           </td>
@@ -68,19 +85,22 @@
       </tbody>
     </table>
 
-    <div class="table-total-details">
+    <div>
+          <div class="table-total-details">
       <div class="table-total-legend">Сумма:</div>
-      <div class="table-total-value">152 212 руб</div>
+      <div class="table-total-value">{{ totalPrice }} руб</div>
       <div class="table-total-legend">Кол-во:</div>
-      <div class="table-total-value">42 шт</div>
+      <div class="table-total-value">{{ totalQty }} шт</div>
       <div class="table-total-legend">Общий вес:</div>
-      <div class="table-total-value">2 322 кг</div>
+      <div class="table-total-value">{{ totalWeight }} кг</div>
     </div>
 
     <div class="table-total-details">
       <div class="table-total-bottomline-legend">Общая сумма:</div>
-      <div class="table-total-bottomline-value">152 212 руб</div>
+      <div class="table-total-bottomline-value">{{ totalPrice }} руб</div>
     </div>
+    </div>
+
   </div>
 </template>
 
@@ -97,7 +117,15 @@ const props = defineProps({
   table: Array,
 });
 
-const { table ,columns, myColumns, visibleColumns } = inject('table')
+const {
+  table,
+  columns,
+  myColumns,
+  visibleColumns,
+  totalPrice,
+  totalQty,
+  totalWeight,
+} = inject("table");
 
 const thRefs = ref([]);
 
@@ -122,7 +150,16 @@ const { startResize, handleResize, stopResize, isResizing } = useResizeCol(
   visibleColumns
 );
 
-const { contMenuParams,  handleOutsideClick, handleSettingsClick} = useSettingsMenu()
+const { contMenuParams, handleOutsideClick, handleSettingsClick } =
+  useSettingsMenu();
+
+const handleDataSave = () => {
+  // process saving data
+  console.log("Оправка данных на сервер");
+  console.log(table.value);
+};
+
+const dontShowHeadersOnDesktop = new Set(['index', 'edit'])
 
 </script>
 
@@ -167,8 +204,16 @@ const { contMenuParams,  handleOutsideClick, handleSettingsClick} = useSettingsM
   overflow: hidden;
 }
 
-.th-resize,
-.td-resize {
+.th.first {
+  border-left: none;
+}
+
+.th.last {
+  border-right: none;
+}
+
+.thresize,
+.tdresize {
   border-right: solid 1px var(--color-border-2);
 }
 
@@ -187,11 +232,11 @@ const { contMenuParams,  handleOutsideClick, handleSettingsClick} = useSettingsM
   height: 45px;
 }
 
-.tr.dragged-row {
+.tr.draggedrow {
   border: dashed 2px var(--color-controls-2);
 }
 
-.tr.dragged-row * {
+.tr.draggedrow * {
   opacity: 0.5;
 }
 
@@ -226,21 +271,3 @@ const { contMenuParams,  handleOutsideClick, handleSettingsClick} = useSettingsM
   font-weight: 600;
 }
 </style>
-
-<!-- 
-index: i,
-id: `tr-${i}`,
-productID: product.id,
-productName: product.name,
-itemID: prodItem.id,
-itemName: prodItem.name,
-qty,
-price: prodItem.price,
-totalPrice: prodItem.price * qty,
-weight: prodItem.weight,
-totalWeight: prodItem.weight * qty,
-deliveryDate,
-deliveryAddress,
-phone,
-manager
--->

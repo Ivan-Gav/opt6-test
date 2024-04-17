@@ -166,7 +166,7 @@ const handleClose = () => {
 
 .up:hover,
 .down:hover {
-  color: red;
+  color: var(--color-controls-5);
 }
 
 .up:disabled,

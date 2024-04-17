@@ -15,7 +15,7 @@
         :class="active === 'catalog' ? 'active' : ''"
         data-to="catalog"
         href=""
-        >Товары</a
+        >{{ isMobile ? 'Товар списания ' : 'Товары' }}</a
       >
       <a
         @click.prevent="handleNavClick"
@@ -26,7 +26,7 @@
         >Доп.расходы</a
       >
     </nav>
-    <button class="settings-btn" @click="handleSettingsClick" >
+    <button class="settings-btn" @click="handleSettingsClick" v-if="!isMobile">
       <CogSVG />
     </button>
   </div>
@@ -36,7 +36,8 @@
 </template>
 
 <script setup>
-import { ref, reactive } from "vue";
+import { ref } from "vue";
+import { useMediaQuery } from '@vueuse/core'
 import CogSVG from "./SVG/CogSVG.vue";
 import SettingsMenu from "./SettingsMenu.vue";
 import useSettingsMenu from "../composables/useSettingsMenu";
@@ -50,6 +51,8 @@ const handleNavClick = (e) => {
   active.value = e.target.dataset.to;
   // process nav click
 };
+
+const isMobile = useMediaQuery('(max-width: 768px)')
 
 </script>
 

@@ -1,6 +1,6 @@
 import { ref } from "vue";
 
-export default function useDragAndDropRow(tableContent) {
+export default function useDragAndDropRow(table) {
   const isDragButtonUsed = ref(false);
   const draggedRow = ref(null);
   const targetRow = ref(null);
@@ -27,22 +27,22 @@ export default function useDragAndDropRow(tableContent) {
     }
     targetRow.value = row;
 
-    const newTableContent = [...tableContent.value];
-    const draggedIndex = newTableContent.indexOf(draggedRow.value);
-    const targetIndex = newTableContent.indexOf(targetRow.value);
+    const newtable = [...table.value];
+    const draggedIndex = newtable.indexOf(draggedRow.value);
+    const targetIndex = newtable.indexOf(targetRow.value);
 
-    [newTableContent[targetIndex], newTableContent[draggedIndex]] = [
-      newTableContent[draggedIndex],
-      newTableContent[targetIndex],
+    [newtable[targetIndex], newtable[draggedIndex]] = [
+      newtable[draggedIndex],
+      newtable[targetIndex],
     ];
-    tableContent.value = [...newTableContent];
+    table.value = [...newtable];
   };
 
   const handleRowDrop = () => {
     if (!draggedRow.value) {
       return
     }
-    tableContent.value.forEach((row, i) => (row.index = i + 1));
+    table.value.forEach((row, i) => (row.index = i + 1));
 
     targetRow.value = null;
     draggedRow.value = null;

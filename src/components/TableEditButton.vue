@@ -1,7 +1,7 @@
 <template>
   <div class="box">
     <button @click="handleEditClick">
-      <EllipsisSVG class="ellipsis"/>
+      <EllipsisSVG :class="{ellipsis: true, active: contMenuParams.show}"/>
     </button>
   </div>
 
@@ -12,7 +12,7 @@
     :y="contMenuParams.y"
   >
     <div class="edit-menu">
-      <button class="del" @click="() => deleteRow(row)">Удалить столбец</button>
+      <button class="del" @click="() => deleteRow(row)">Удалить</button>
     </div>
   </CustomContextMenu>
 </template>
@@ -37,8 +37,8 @@ const contMenuParams = reactive({
 });
 
 const handleEditClick = (e) => {
-  contMenuParams.x = e.clientX + 250;
-  contMenuParams.y = e.clientY;
+  contMenuParams.x = e.pageX + 250;
+  contMenuParams.y = e.pageY;
   contMenuParams.show = !contMenuParams.show;
 }
 
@@ -56,6 +56,10 @@ const handleOutsideClick = () => {
 }
 .ellipsis {
   color: var(--color-controls-2);
+}
+
+.ellipsis.active {
+  color: var(--color-nav-link);
 }
 
 .edit-menu {
@@ -83,6 +87,7 @@ const handleOutsideClick = () => {
   text-overflow: clip;
   white-space: nowrap;
   overflow: hidden;
+  color: var(--color-controls-5);
 }
 
 .del:hover {
@@ -90,6 +95,6 @@ const handleOutsideClick = () => {
 }
 
 .del:active {
-  color: red;
+  opacity: 0.7;
 }
 </style>

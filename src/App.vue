@@ -1,30 +1,45 @@
 <template>
-  <main class="main">
-    <h1 class="pageheading">Проведение ТО и мелкий ремонт</h1>
+  <main :class="{main: true, mobile: isMobile}">
+    <section class="heading-box">
+      <button v-if="isMobile" class="burger-btn" @click="() => console.log('эта кнопка что-то делает...')">
+        <BurgerSVG />
+      </button>
+      <h1 class="heading">Проведение ТО и мелкий ремонт</h1>
+    </section>
+    
 
     <NavBar />
 
-    <div class="box">
+    <section class="box">
       <button class="add-btn" @click="addRow">
         <PlusSVG />
         <span>Добавить строку</span>
       </button>
-    </div>
+    </section>
+
+    <TableComponentMobile
+      v-if="isMobile"
+      :table="table"
+    />
 
     <TableComponent
+      v-else
       :table="table"
-      @delete-row="() => console.log('delete row')"
     />
   </main>
 </template>
 
 <script setup>
 import { onBeforeMount, provide, ref, computed } from "vue";
+import { useMediaQuery } from '@vueuse/core'
+
 import goods from "./mockdata/goods.json"; // mock data to emulate products from backend
 import orderItems from "./mockdata/orderItems.json"; // mock data to emulate order info from backend
 import NavBar from "./components/NavBar.vue";
 import PlusSVG from "./components/SVG/PlusSVG.vue";
+import BurgerSVG from "./components/SVG/BurgerWideSVG.vue";
 import TableComponent from "./components/TableComponent.vue";
+import TableComponentMobile from "./components/TableComponentMobile.vue";
 import TableEditButton from "./components/TableEditButton.vue";
 import TableDnDButton from "./components/TableDnDButton.vue";
 import ProductItemSelect from "./components/ProductItemSelect.vue";
@@ -114,7 +129,7 @@ const deleteRow = (row) => {
 const myColumns = [
   {
     accessorKey: "index",
-    header: "",
+    header: "Номер строки",
     cell: TableDnDButton,
     getCellProps: (row) => ({ row }),
     initialWidth: 30,
@@ -123,7 +138,7 @@ const myColumns = [
   },
   {
     accessorKey: "edit",
-    header: "",
+    header: "Действие",
     cell: TableEditButton,
     getCellProps: (row) => ({ row }),
     initialWidth: 20,
@@ -135,7 +150,7 @@ const myColumns = [
     header: "Наименование единицы",
     cell: ProductItemSelect,
     getCellProps: (row) => ({ row }),
-    initialWidth: 600,
+    initialWidth: 0,
     initialShow: true,
     editable: true,
   },
@@ -144,7 +159,7 @@ const myColumns = [
     header: "Цена",
     cell: CustomNumberInput,
     getCellProps: (row) => ({ id: `price-${row.id}` }),
-    initialWidth: 200,
+    initialWidth: 0,
     initialShow: true,
     editable: true,
   },
@@ -153,7 +168,7 @@ const myColumns = [
     header: "Кол-во",
     cell: CustomNumberInput,
     getCellProps: (row) => ({ id: `qty-${row.id}` }),
-    initialWidth: 200,
+    initialWidth: 0,
     initialShow: true,
     editable: true,
   },
@@ -251,6 +266,8 @@ const totalWeight = computed(() =>
 
 useTableUpdate(table, products);
 
+const isMobile = useMediaQuery('(max-width: 768px)')
+
 provide("table", {
   table,
   columns,
@@ -277,10 +294,25 @@ provide("data", { products, orderRows });
   gap: 25px;
 }
 
-.pageheading {
+.main.mobile {
+  padding: 10px;
+}
+
+.heading-box {
+  display: flex;
+  align-items: baseline;
+  gap: 25px
+}
+
+.burger-btn {
+  color: var(--color-controls-2);
+}
+
+.heading {
   margin: 0;
   padding: 0;
   font-size: 30px;
+  line-height:  100%;
 }
 
 .box {

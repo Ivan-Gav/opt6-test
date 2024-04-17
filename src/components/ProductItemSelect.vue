@@ -7,7 +7,7 @@
 </template>
 
 <script setup>
-import { inject, ref, onMounted } from "vue";
+import { inject, computed } from "vue";
 import CustomSelect from "./UI/CustomSelect.vue";
 
 const { row } = defineProps({
@@ -16,14 +16,13 @@ const { row } = defineProps({
 
 const { products } = inject("data");
 
-const options = ref([]);
-
-onMounted(() => {
+const options = computed(() => {
   const product = products.value.find((p) => p.id === row.productID);
   if (product && "items" in product) {
-    options.value = [...product.items];
+    return [...product.items];
   } else {
-    //process error
+    return []
   }
-});
+})
+
 </script>

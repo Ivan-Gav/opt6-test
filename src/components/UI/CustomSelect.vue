@@ -1,6 +1,6 @@
 <template>
   <div class="box" ref="selectRef">
-    <div class="select" :class="isOpen && 'open'" @click="handleSelectClick">{{ val }}</div>
+    <div class="select" :class="isOpen && 'open'" @click="handleSelectClick">{{ model }}</div>
     <ul class="options" v-if="isOpen">
       <li class="option" v-for="option in options" :key="`${id}-${option.id}`" @click="() => handleOptionClick(option)">
         {{ option.name }}
@@ -19,16 +19,18 @@ const props = defineProps({
   options: Array,
 });
 
+const model = defineModel()
+
 const selectRef = ref(null)
 const isOpen = ref(false);
-const val = ref(props.value || "");
+// const val = ref(props.value || "");
 
 const handleSelectClick = () => {
   isOpen.value = !isOpen.value;
 };
 
 const handleOptionClick = (option) => {
-  val.value = option.name
+  model.value = option.name
   closeOptions()
 }
 

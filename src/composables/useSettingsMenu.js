@@ -13,8 +13,8 @@ const handleOutsideClick = () => {
 }
 
 const handleSettingsClick = (e) => {
-  contMenuParams.x = e.clientX;
-  contMenuParams.y = e.clientY;
+  contMenuParams.x = e.pageX;
+  contMenuParams.y = e.pageY;
   contMenuParams.show = !contMenuParams.show;
 };
 

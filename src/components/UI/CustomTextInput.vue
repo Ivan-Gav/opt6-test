@@ -1,15 +1,14 @@
 <template>
-  <input :id="id" type="text" v-model="val" class="input" />
+  <input :id="id" type="text" v-model="model" class="input" />
 </template>
 
 <script setup>
 import { ref } from "vue";
 const props = defineProps({
-  value: String,
   id: String,
 });
 
-const val = ref(props.value || '');
+const model = defineModel();
 </script>
 
 <style scoped>
@@ -32,7 +31,6 @@ const val = ref(props.value || '');
 .input::-webkit-inner-spin-button {
   display: none;
 }
-
 
 .input:focus-visible {
   outline: solid 1px;
