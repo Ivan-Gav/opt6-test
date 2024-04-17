@@ -132,7 +132,7 @@ const myColumns = [
     header: "Номер строки",
     cell: TableDnDButton,
     getCellProps: (row) => ({ row }),
-    initialWidth: 30,
+    initialWidth: 50,
     initialShow: true,
     editable: false,
   },
@@ -141,7 +141,7 @@ const myColumns = [
     header: "Действие",
     cell: TableEditButton,
     getCellProps: (row) => ({ row }),
-    initialWidth: 20,
+    initialWidth: 24,
     initialShow: true,
     editable: false,
   },
@@ -317,7 +317,7 @@ provide("data", { products, orderRows });
 
 .box {
   width: 100%;
-  padding: 20px 25px;
+  padding: 19px 25px;
   border-radius: 10px;
   box-shadow: var(--shadow);
   border: solid 1px var(--color-border-1);

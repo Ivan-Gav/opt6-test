@@ -1,5 +1,5 @@
 <template>
-  <div class="table-box" @mouseup="stopResize">
+  <section class="table-box" @mouseup="stopResize">
     <div class="table-controls">
       <button class="save-btn" @click="handleDataSave">
         Сохранить изменения
@@ -101,7 +101,7 @@
     </div>
     </div>
 
-  </div>
+  </section>
 </template>
 
 <script setup>
@@ -173,7 +173,7 @@ const dontShowHeadersOnDesktop = new Set(['index', 'edit'])
   padding-bottom: 25px;
 }
 .table-controls {
-  min-height: 32px;
+  min-height: 30px;
   padding-inline: 15px;
   display: flex;
   justify-content: flex-end;
@@ -189,11 +189,12 @@ const dontShowHeadersOnDesktop = new Set(['index', 'edit'])
   width: 100%;
   table-layout: fixed;
   overflow-x: hidden;
+  margin-bottom: 15px;
 }
 .th {
   position: relative;
   min-height: 44px;
-  padding: 14px 10px;
+  padding: 12px 10px;
   font-family: var(--font-semibold);
   font-size: 16px;
   border: solid 1px var(--color-border-1);
@@ -248,8 +249,8 @@ const dontShowHeadersOnDesktop = new Set(['index', 'edit'])
   max-width: 304px;
   display: grid;
   grid-template-columns: auto auto;
-  row-gap: 15px;
-  padding: 15px;
+  row-gap: 13px;
+  padding: 12px 15px 15px;
   border-radius: 5px;
   border: solid 1px var(--color-border-1);
   background-color: var(--color-bg-3);

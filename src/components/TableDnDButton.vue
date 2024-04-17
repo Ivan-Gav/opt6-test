@@ -22,6 +22,7 @@ const emit = defineEmits(['pressDrag']);
   justify-content: center;
   align-items: center;
   gap: 5px;
+  padding-left: 4px;
 }
 .burger {
   color: var(--color-controls-2);

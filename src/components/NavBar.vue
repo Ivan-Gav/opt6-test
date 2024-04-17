@@ -23,7 +23,7 @@
         :class="active === 'additional' ? 'active' : ''"
         data-to="additional"
         href=""
-        >Доп.расходы</a
+        >Доп. расходы</a
       >
     </nav>
     <button class="settings-btn" @click="handleSettingsClick" v-if="!isMobile">

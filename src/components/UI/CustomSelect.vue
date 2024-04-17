@@ -115,6 +115,7 @@ useOutsideClick(selectRef, closeOptions);
   text-overflow: clip;
   white-space: nowrap;
   overflow: hidden;
+  font-size: 14px;
 }
 
 .option:hover {
