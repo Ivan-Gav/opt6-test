@@ -11,7 +11,10 @@
       </button>
     </div>
 
-    <TableComponent :table="table" @delete-row="() => console.log('delete row')"/>
+    <TableComponent
+      :table="table"
+      @delete-row="() => console.log('delete row')"
+    />
   </main>
 </template>
 
@@ -28,6 +31,8 @@ import ProductItemSelect from "./components/ProductItemSelect.vue";
 import CustomSelect from "./components/UI/CustomSelect.vue";
 import CustomNumberInput from "./components/UI/CustomNumberInput.vue";
 import CustomTextInput from "./components/UI/CustomTextInput.vue";
+import useTableUpdate from "./composables/useTableUpdate";
+import formatNr from "./utils/formatNr";
 
 const products = ref([]);
 const orderRows = ref([]);
@@ -103,8 +108,8 @@ const addRow = () => {
 };
 
 const deleteRow = (row) => {
-  table.value.splice(table.value.indexOf(row), 1)
-}
+  table.value.splice(table.value.indexOf(row), 1);
+};
 
 const myColumns = [
   {
@@ -113,7 +118,8 @@ const myColumns = [
     cell: TableDnDButton,
     getCellProps: (row) => ({ row }),
     initialWidth: 30,
-    initialShow: true
+    initialShow: true,
+    editable: false,
   },
   {
     accessorKey: "edit",
@@ -121,7 +127,8 @@ const myColumns = [
     cell: TableEditButton,
     getCellProps: (row) => ({ row }),
     initialWidth: 20,
-    initialShow: true
+    initialShow: true,
+    editable: false,
   },
   {
     accessorKey: "itemName",
@@ -129,79 +136,93 @@ const myColumns = [
     cell: ProductItemSelect,
     getCellProps: (row) => ({ row }),
     initialWidth: 600,
-    initialShow: true
+    initialShow: true,
+    editable: true,
   },
   {
     accessorKey: "price",
     header: "Цена",
     cell: CustomNumberInput,
-    getCellProps: (row) => ({ value: row.price, id: `price-${row.id}` }),
+    getCellProps: (row) => ({ id: `price-${row.id}` }),
     initialWidth: 200,
-    initialShow: true
+    initialShow: true,
+    editable: true,
   },
   {
     accessorKey: "qty",
     header: "Кол-во",
     cell: CustomNumberInput,
-    getCellProps: (row) => ({ value: row.qty, id: `qty-${row.id}` }),
+    getCellProps: (row) => ({ id: `qty-${row.id}` }),
     initialWidth: 200,
-    initialShow: true
+    initialShow: true,
+    editable: true,
   },
   {
     accessorKey: "productName",
     header: "Название товара",
     cell: CustomSelect,
-    getCellProps: (row) => ({ id: `product-${row.id}`, value: row.productName, options: products.value }), 
-    initialShow: true
+    getCellProps: (row) => ({
+      id: `product-${row.id}`,
+      options: products.value,
+    }),
+    initialShow: true,
+    editable: true,
   },
   {
     accessorKey: "totalPrice",
     header: "Итого",
     cell: CustomNumberInput,
-    getCellProps: (row) => ({ value: row.price * row.qty, id: `total-${row.id}` }),
-    initialShow: true
+    getCellProps: (row) => ({ id: `total-${row.id}` }),
+    initialShow: true,
+    editable: true,
   },
   {
     accessorKey: "weight",
     header: "Вес",
     cell: CustomNumberInput,
-    getCellProps: (row) => ({ value: row.weight, id:`weight-${row.id}` }),
-    initialShow: false
+    getCellProps: (row) => ({ id: `weight-${row.id}` }),
+    initialShow: false,
+    editable: true,
   },
   {
     accessorKey: "totalWeight",
     header: "Общий вес",
     cell: CustomNumberInput,
-    getCellProps: (row) => ({ value: row.totalWeight, id:`total-weight-${row.id}` }),
-    initialShow: false
+    getCellProps: (row) => ({ id: `total-weight-${row.id}` }),
+    initialShow: false,
+    editable: true,
   },
   {
     accessorKey: "deliveryDate",
     header: "Дата поставки",
     cell: CustomTextInput,
-    getCellProps: (row) => ({ value: row.deliveryDate, id:`delivery-date-${row.id}` }),
-    initialShow: false
+    getCellProps: (row) => ({ id: `delivery-date-${row.id}` }),
+    initialShow: false,
+    editable: true,
   },
   {
     accessorKey: "deliveryAddress",
     header: "Адрес доставки",
     cell: CustomTextInput,
-    getCellProps: (row) => ({ value: row.deliveryAddress, id:`delivery-address-${row.id}` }),
-    initialShow: false
+    getCellProps: (row) => ({ id: `delivery-address-${row.id}` }),
+    initialShow: false,
+    editable: true,
   },
   {
     accessorKey: "phone",
     header: "Телефон",
     cell: CustomTextInput,
-    getCellProps: (row) => ({ value: row.phone, id:`phone-${row.id}` }),
-    initialShow: false
+    getCellProps: (row) => ({ id: `phone-${row.id}` }),
+    initialShow: false,
+    editable: true,
   },
   {
     accessorKey: "manager",
     header: "Менеджер",
     cell: CustomTextInput,
-    getCellProps: (row) => ({ value: row.manager, id:`manager-${row.id}` }),
-    initialShow: false
+    getCellProps: (row) => ({ id: `manager-${row.id}` }),
+    initialShow: false,
+    editable: true,
   },
 ];
 
@@ -212,13 +233,34 @@ const columns = ref(
     width: col.initialWidth || 0,
     name: col.header || col.accessorKey,
     show: col.initialShow || false,
-
+    editable: col.editable || false,
   }))
 );
 
 const visibleColumns = computed(() => columns.value.filter((col) => col.show));
 
-provide("table", { table, columns, myColumns, visibleColumns, deleteRow })
+const totalPrice = computed(() =>
+  formatNr(table.value.reduce((total, row) => total + row.price * row.qty, 0))
+);
+const totalQty = computed(() =>
+  formatNr(table.value.reduce((total, row) => total + row.qty, 0))
+);
+const totalWeight = computed(() =>
+  formatNr(table.value.reduce((total, row) => total + row.weight * row.qty, 0))
+);
+
+useTableUpdate(table, products);
+
+provide("table", {
+  table,
+  columns,
+  myColumns,
+  visibleColumns,
+  totalPrice,
+  totalQty,
+  totalWeight,
+  deleteRow,
+});
 provide("data", { products, orderRows });
 </script>
 
