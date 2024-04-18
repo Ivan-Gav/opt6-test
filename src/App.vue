@@ -255,13 +255,13 @@ const columns = ref(
 const visibleColumns = computed(() => columns.value.filter((col) => col.show));
 
 const totalPrice = computed(() =>
-  formatNr(table.value.reduce((total, row) => total + row.price * row.qty, 0))
+  formatNr(table.value.reduce((total, row) => total + row.totalPrice, 0))
 );
 const totalQty = computed(() =>
   formatNr(table.value.reduce((total, row) => total + row.qty, 0))
 );
 const totalWeight = computed(() =>
-  formatNr(table.value.reduce((total, row) => total + row.weight * row.qty, 0))
+  formatNr(table.value.reduce((total, row) => total + row.totalWeight, 0))
 );
 
 useTableUpdate(table, products);
